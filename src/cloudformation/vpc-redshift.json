@@ -1,0 +1,428 @@
+{
+   "AWSTemplateFormatVersion":"2010-09-09",
+   "Description":"This template creates resources necessary for Redshift cluster to be used for AWS Glue job Lab",
+   "Parameters":{
+      "AodClusterType":{
+         "Description":"Select single-node or multi-node cluster",
+         "Type":"String",    
+         "AllowedValues" : ["single-node", "multi-node"],
+         "Default":"multi-node"
+      },
+      "AodNodeType":{
+         "Description":"Select node-type of the cluster",
+         "Type":"String",    
+         "AllowedValues" : ["ds2.xlarge", "ds2.8xlarge","dc2.large", "dc2.8xlarge"],
+         "Default":"dc2.8xlarge"
+      },
+      "AodNumberOfNodes":{
+         "Description":"Select number of nodes of the cluster",
+         "Type":"Number",
+         "Default":2
+      }
+   },
+   "Resources":{
+      "AodVpc":{
+         "Type":"AWS::EC2::VPC",
+         "Properties":{
+            "CidrBlock":"172.31.0.0/16",
+            "EnableDnsSupport":"true",
+            "EnableDnsHostnames":"true",
+            "InstanceTenancy":"default",
+            "Tags":[
+               {
+                  "Key":"Name",
+                  "Value":{
+                     "Fn::Join":[
+                        "-",
+                        [
+                           {
+                              "Ref":"AWS::StackName"
+                           },
+                           "AodVpc"
+                        ]
+                     ]
+                  }
+               }
+            ]
+         }
+      },
+      "S3Endpoint" : {
+         "Type" : "AWS::EC2::VPCEndpoint",
+            "Properties" : {
+               "PolicyDocument" : {
+                  "Version":"2012-10-17",
+                  "Statement":[{
+                     "Effect":"Allow",
+                     "Principal": "*",
+                     "Action":["s3:*"],
+                     "Resource":["arn:aws:s3:::*"]
+                  }]
+               },
+            "RouteTableIds" : [{"Ref" : "AodPublicRouteTable"}],
+            "ServiceName" : { "Fn::Sub": "com.amazonaws.${AWS::Region}.s3" },
+            "VpcId" : {"Ref" : "AodVpc"}
+           }
+      },
+      "AodInternetGateway":{
+         "Type":"AWS::EC2::InternetGateway",
+         "Properties":{
+            "Tags":[
+               {
+                  "Key":"Name",
+                  "Value":{
+                     "Fn::Join":[
+                        "-",
+                        [
+                           {
+                              "Ref":"AWS::StackName"
+                           },
+                           "AodInternetGateway"
+                        ]
+                     ]
+                  }
+               }
+            ]
+         }
+      },
+      "AodAttachGateway":{
+         "Type":"AWS::EC2::VPCGatewayAttachment",
+         "Properties":{
+            "VpcId":{
+               "Ref":"AodVpc"
+            },
+            "InternetGatewayId":{
+               "Ref":"AodInternetGateway"
+            }
+         }
+      },
+      "AodSubnet1":{
+         "Type":"AWS::EC2::Subnet",
+         "Properties":{
+            "VpcId":{
+               "Ref":"AodVpc"
+            },
+            "MapPublicIpOnLaunch":"true",
+            "CidrBlock":"172.31.0.0/24",
+            "AvailabilityZone":{
+              "Fn::Select" : [ "0", { "Fn::GetAZs" : "" } ]
+            },
+            "Tags":[
+               {
+                  "Key":"Name",
+                  "Value":{
+                     "Fn::Join":[
+                        "-",
+                        [
+                           {
+                              "Ref":"AWS::StackName"
+                           },
+                           "AodSubnet1"
+                        ]
+                     ]
+                  }
+               }
+            ]
+         }
+      },
+      "AodSubnet2":{
+         "Type":"AWS::EC2::Subnet",
+         "Properties":{
+            "VpcId":{
+               "Ref":"AodVpc"
+            },
+            "MapPublicIpOnLaunch":"true",
+            "CidrBlock":"172.31.8.0/24",
+            "AvailabilityZone":{
+              "Fn::Select" : [ "1", { "Fn::GetAZs" : "" } ]
+            },
+            "Tags":[
+               {
+                  "Key":"Name",
+                  "Value":{
+                     "Fn::Join":[
+                        "-",
+                        [
+                           {
+                              "Ref":"AWS::StackName"
+                           },
+                           "AodSubnet2"
+                        ]
+                     ]
+                  }
+               }
+            ]
+         }
+      },
+      "AodSubnet3":{
+         "Type":"AWS::EC2::Subnet",
+         "Properties":{
+            "VpcId":{
+               "Ref":"AodVpc"
+            },
+            "MapPublicIpOnLaunch":"true",
+            "CidrBlock":"172.31.16.0/24",
+            "AvailabilityZone":{
+              "Fn::Select" : [ "2", { "Fn::GetAZs" : "" } ]
+            },
+            "Tags":[
+               {
+                  "Key":"Name",
+                  "Value":{
+                     "Fn::Join":[
+                        "-",
+                        [
+                           {
+                              "Ref":"AWS::StackName"
+                           },
+                           "AodSubnet3"
+                        ]
+                     ]
+                  }
+               }
+            ]
+         }
+      },
+      "AodClusterSubnetGroup" : {
+        "Type" : "AWS::Redshift::ClusterSubnetGroup",
+        "Properties" : {
+          "Description" : "DMS Redshift Cluster Subnet Group",
+          "SubnetIds":[
+             {
+                "Ref":"AodSubnet1"
+             },
+             {
+                "Ref":"AodSubnet2"
+             },
+             {
+                "Ref":"AodSubnet3"
+             }
+          ],
+          "Tags":[
+             {
+                "Key":"Name",
+                "Value":{
+                   "Fn::Join":[
+                      "-",
+                      [
+                         {
+                            "Ref":"AWS::StackName"
+                         },
+                         "AodClusterSubnetGroup"
+                      ]
+                   ]
+                }
+             }
+          ]
+       }
+      },
+      "AodPublicRouteTable":{
+         "Type":"AWS::EC2::RouteTable",
+         "Properties":{
+            "VpcId":{
+               "Ref":"AodVpc"
+            },
+            "Tags":[
+               {
+                  "Key":"Name",
+                  "Value":{
+                     "Fn::Join":[
+                        "-",
+                        [
+                           {
+                              "Ref":"AWS::StackName"
+                           },
+                           "AodPublicRouteTable"
+                        ]
+                     ]
+                  }
+               }
+            ]
+         },
+         "DependsOn" : "AodAttachGateway"
+      },
+      "AodPublicRoute":{
+         "Type":"AWS::EC2::Route",
+         "Properties":{
+            "RouteTableId":{
+               "Ref":"AodPublicRouteTable"
+            },
+            "DestinationCidrBlock":"0.0.0.0/0",
+            "GatewayId":{
+               "Ref":"AodInternetGateway"
+            }
+         },
+         "DependsOn" : "AodAttachGateway"
+      },
+      "AodSubnet1RouteTableAssociation":{
+         "Type":"AWS::EC2::SubnetRouteTableAssociation",
+         "Properties":{
+            "SubnetId":{
+               "Ref":"AodSubnet1"
+            },
+            "RouteTableId":{
+               "Ref":"AodPublicRouteTable"
+            }
+         }
+      },
+      "AodSubnet2RouteTableAssociation":{
+         "Type":"AWS::EC2::SubnetRouteTableAssociation",
+         "Properties":{
+            "SubnetId":{
+               "Ref":"AodSubnet2"
+            },
+            "RouteTableId":{
+               "Ref":"AodPublicRouteTable"
+            }
+         }
+      },
+      "AodSubnet3RouteTableAssociation":{
+         "Type":"AWS::EC2::SubnetRouteTableAssociation",
+         "Properties":{
+            "SubnetId":{
+               "Ref":"AodSubnet3"
+            },
+            "RouteTableId":{
+               "Ref":"AodPublicRouteTable"
+            }
+         }
+      },
+      "RedshiftSecurityGroup":{
+         "Type":"AWS::EC2::SecurityGroup",
+         "Properties":{
+            "VpcId":{
+               "Ref":"AodVpc"
+            },
+            "GroupDescription":"Enable access into Redshift cluster",
+            "SecurityGroupIngress":[
+               {
+                  "IpProtocol":"tcp",
+                  "FromPort":"8192",
+                  "ToPort":"8192",
+                  "CidrIp":"0.0.0.0/0"
+               }
+            ]
+         }
+      },
+      "RedshiftS3Role": {
+        "Type": "AWS::IAM::Role",
+        "Properties": {
+          "RoleName": {
+               "Fn::Join":[
+                  "-",
+                  [
+                     {
+                        "Ref":"AWS::StackName"
+                     },
+                     "redshift-aod-s3"
+                  ]
+               ]
+            },
+          "AssumeRolePolicyDocument": {
+            "Version": "2012-10-17",
+            "Statement": [{
+              "Effect": "Allow",
+              "Principal": {"Service": "redshift.amazonaws.com"},
+              "Action": ["sts:AssumeRole"]
+              }]
+            },
+         "Policies": [{
+           "PolicyName": "redshift-aod-s3-role",
+           "PolicyDocument": {
+             "Version": "2012-10-17",
+             "Statement": [
+               {
+               "Effect": "Allow",
+               "Action": "s3:*",
+               "Resource": "*"
+               }
+              ]
+             }
+         }]
+        }
+      },
+      "RedshiftCluster":{
+        "Type": "AWS::Redshift::Cluster",
+        "Properties": {
+          "ClusterType": { "Ref" : "AodClusterType" },
+          "NodeType": { "Ref" : "AodNodeType" },
+          "NumberOfNodes" :  { "Ref" : "AodNumberOfNodes" },
+          "DBName": "aoddb",
+          "Port":8192,
+          "IamRoles" : [{
+            "Fn::GetAtt":[
+               "RedshiftS3Role",
+               "Arn"
+            ]
+          }],
+          "MasterUsername": "aodmaster",
+          "MasterUserPassword": "Welcome123",
+          "ClusterParameterGroupName" : { "Ref" : "RedshiftClusterParameterGroup" },
+          "VpcSecurityGroupIds" : [ { "Ref" : "RedshiftSecurityGroup" } ],
+          "ClusterSubnetGroupName":{
+             "Ref":"AodClusterSubnetGroup"
+          },
+          "PubliclyAccessible": "true"
+        }
+      },
+      "RedshiftClusterParameterGroup" : {
+        "Type" : "AWS::Redshift::ClusterParameterGroup",
+        "Properties" : {
+         "Description" : "Auto WLM cluster parameter group",
+         "ParameterGroupFamily" : "redshift-1.0",
+         "Parameters" : [{
+           "ParameterName" : "enable_user_activity_logging",
+           "ParameterValue" : "true"
+         },
+         {
+           "ParameterName" : "max_concurrency_scaling_clusters",
+           "ParameterValue" : "2"
+         },
+         {
+           "ParameterName": "wlm_json_configuration",
+           "ParameterValue": "[{\"concurrency_scaling\" : \"auto\",\"auto_wlm\" : true}, {\"short_query_queue\" : true}]"
+         }]
+       }
+     },
+      "S3Bucket":{
+        "Type" : "AWS::S3::Bucket"
+      }
+   },
+   "Outputs":{
+      "AoDRedshiftEndpoint":{
+         "Description":"Endpoint of target Redshift instance",
+         "Value":{
+            "Fn::GetAtt":[
+               "RedshiftCluster",
+               "Endpoint.Address"
+            ]
+         }
+      },
+      "AoDVpcId":{
+         "Description":"AoD workshop VPC Identifier",
+         "Value":{
+            "Ref":"AodVpc"
+         },
+         "Export" : { "Name" : {"Fn::Sub": "${AWS::StackName}-VpcId" }}
+      },
+      "AoDPublicSubnet":{
+         "Description":"AoD workshop VPC Identifier",
+         "Value":{
+            "Ref":"AodSubnet1"
+         },
+         "Export" : { "Name" : {"Fn::Sub": "${AWS::StackName}-PublicSubnetID" }}
+      },
+      "AoDRedshiftSecurityGroup":{
+         "Description":"AoD workshop Redshift cecurity group ID",
+         "Value":{
+            "Ref":"RedshiftSecurityGroup"
+         },
+         "Export" : { "Name" : {"Fn::Sub": "${AWS::StackName}-RedshiftSecurityGroupID" }}
+      },
+      "AoDS3Bucket":{
+         "Description":"AoD workshop S3 bucket",
+         "Value":{
+            "Ref":"S3Bucket"
+         }
+      }
+    }
+}
