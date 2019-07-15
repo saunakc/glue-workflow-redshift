@@ -26,3 +26,22 @@ Building workflow using AWS Glue python shell to load and unload sample data
 6. Finally the Stack creation will mark as CREATE_COMPLETE. Click on the Outputs tab. You will find all the necessary resources you will need for this lab.
 
 ![CFN Outputs](https://github.com/saunakc/glue-shellworkflow-redshift/blob/master/images/cfnsOutputs.gif)
+
+#### Test Cluster connectivity
+
+You can connect to your cluster using your favorite SQL client. I use SQL Workbench/ J. Remember to use details:
+
+* Endpoint - find it from the CFN Outputs. The endpoint will be similar to aodrsstack-redshiftcluster-1vytmfve2c8p5.cqga9q1t5wyf.us-east-2.redshift.amazonaws.com
+* Port - **8192**
+* Database name - **aoddb**
+* Username - **aodmaster**
+* Password - **Welcome123**
+
+The JDBC connection string will be 
+
+``jdbc:redshift://aodrsstack-redshiftcluster-1vytmfve2c8p5.cqga9q1t5wyf.us-east-2.redshift.amazonaws.com:8192/aoddb?ssl=false``
+
+
+### Create Glue Workflow
+
+#### Create 
