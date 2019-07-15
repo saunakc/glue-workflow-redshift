@@ -41,7 +41,85 @@ The JDBC connection string will be
 
 ``jdbc:redshift://aodrsstack-redshiftcluster-1vytmfve2c8p5.cqga9q1t5wyf.us-east-2.redshift.amazonaws.com:8192/aoddb?ssl=false``
 
+### Create table
+From your SQL client execute below statement.
+
+```SQL
+CREATE TABLE weather_data
+(
+	id VARCHAR(30) ENCODE zstd,
+	usaf INTEGER ENCODE zstd,
+	wban INTEGER ENCODE zstd,
+	elevation NUMERIC(6, 2) ENCODE zstd,
+	country_code VARCHAR(3) ENCODE bytedict,
+	latitude NUMERIC(10, 3) ENCODE zstd,
+	longitude NUMERIC(10, 3) ENCODE zstd,
+	reported_date DATE ENCODE zstd,
+	year INTEGER,
+	month INTEGER,
+	day INTEGER ENCODE zstd,
+	mean_temp NUMERIC(6, 2) ENCODE delta32k,
+	mean_temp_count INTEGER ENCODE zstd,
+	mean_dewpoint NUMERIC(6, 2) ENCODE delta32k,
+	mean_dewpoint_count INTEGER ENCODE zstd,
+	mean_sea_level_pressure NUMERIC(6, 2) ENCODE delta32k,
+	mean_sea_level_pressure_count INTEGER ENCODE delta,
+	mean_station_pressure NUMERIC(6, 2) ENCODE delta32k,
+	mean_station_pressure_count INTEGER ENCODE zstd,
+	mean_visibility NUMERIC(6, 2) ENCODE bytedict,
+	mean_visibility_count INTEGER ENCODE delta,
+	mean_windspeed NUMERIC(6, 2) ENCODE bytedict,
+	mean_windspeed_count INTEGER ENCODE delta,
+	max_windspeed NUMERIC(6, 2) ENCODE bytedict,
+	max_gust NUMERIC(6, 2) ENCODE bytedict,
+	max_temp NUMERIC(6, 2) ENCODE delta32k,
+	max_temp_quality_flag INTEGER ENCODE zstd,
+	min_temp NUMERIC(6, 2) ENCODE delta32k,
+	min_temp_quality_flag CHAR(1) ENCODE zstd,
+	precipitation NUMERIC(6, 2) ENCODE zstd,
+	precip_flag CHAR(1) ENCODE zstd,
+	snow_depth NUMERIC(6, 2) ENCODE zstd,
+	fog INTEGER ENCODE zstd,
+	rain_or_drizzle INTEGER ENCODE zstd,
+	snow_or_ice INTEGER ENCODE zstd,
+	hail INTEGER ENCODE zstd,
+	thunder INTEGER ENCODE zstd,
+	tornado INTEGER ENCODE zstd
+)
+DISTSTYLE EVEN
+SORTKEY
+(
+	year,
+	month
+);
+```
 
 ### Create Glue Workflow
 
-#### Create 
+#### Create Glue jobs
+
+* Switch to AWS service AWS Glue and select Jobs from the left navigation. Click "Add job".
+* Enter job information
+
+  Name ->  AodRS
+  
+  IAM Role -> AWS-Glue-ServiceRole
+  
+  Type -> Python shell
+  
+  S3 path where the script is stored -> s3://aws-glue-scripts-<account#>-us-east-2/scripts
+  
+![AodRSGlueJob](https://github.com/saunakc/glue-shellworkflow-redshift/blob/master/images/AodRS-gluejob-properties1.gif)
+
+* Expand "Security configuration, script libraries ...." and enter below job parameters as Key-Value pair
+
+  ** --host
+  ** --port
+  ** --dbname
+  ** --dbuser
+  ** --dbpassword
+  ** --iamrole
+
+![AodRSGlueJobParam](https://github.com/saunakc/glue-shellworkflow-redshift/blob/master/images/AodRS-gluejob-parameters.gif)
+
+* Hit "Save job and edit script" on Connections screen. Paste the [aodrs-glue-copy.py](https://github.com/saunakc/glue-shellworkflow-redshift/blob/master/src/scripts/aodrs-glue-copy.py) script in the page. Hit Save.
