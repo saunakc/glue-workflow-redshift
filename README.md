@@ -183,7 +183,7 @@ The parameters are
   * Click on the newly added node AodRS. It will display a placeholder Add node on right. Click on the placeholder Add node and enter the name AodUnload. Hit Add.
   ![glueworkflow-aodunload](https://github.com/saunakc/glue-shellworkflow-redshift/blob/master/images/AodRS-gluewf-aodunload.gif)
   
-  * Once this is saved it will create 2 placeholder nodes. The one on the left side is for the triggering event. The right side node is for triggered event.
+  * Once this is saved it will create 2 placeholder nodes. The one on the left side is for any additional triggering event. We will not add anything there. The right side node is for the triggered event. We will add the crawler here.
   ![glueworkflow-additionalnodes](https://github.com/saunakc/glue-shellworkflow-redshift/blob/master/images/AodRS-gluewf-additionalnodes.gif)
   
   * Select that right node i.e triggered node and choose "aodCrawler" crawler and hit Add.
