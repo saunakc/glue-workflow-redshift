@@ -151,7 +151,7 @@ The parameters are
   
   * --iamrole
   
-  * --s3location
+  * --s3location	--> s3://aodrsstack-s3bucket-1bchdtlq8nw17/**tables/weather_data/year=2016/month=01/**
   
   #### Create AWS Glue Crawler
   
@@ -168,3 +168,26 @@ The parameters are
   * Configure the crawler's output select Database default and Prefix as aodrs_. Hit Next and Finish.
   
   ![crawler-output](https://github.com/saunakc/glue-shellworkflow-redshift/blob/master/images/AodRS-gluecrawler-output.gif)
+  
+  ### Create Workflow
+  
+  * Select ETL > Workflows > Add Workflow. Give a Workflow  name such as "AodWorkFlow". Hit Add workflow.
+  
+  * Select AoDWorkFlow by clicking the left radio button. In the Graph tab select Action > Add trigger.
+  
+  * Select Add new and give a name "StartWorkflow" and Trigger type as "On demand".
+  
+  * Click on "Add node" inside the graph. Select "AodRS" job and hit Add.
+  ![glueworkflow-start](https://github.com/saunakc/glue-shellworkflow-redshift/blob/master/images/AodRS-gluewf-startwf.gif)
+  
+  * Click on the newly added node AodRS. It will display a placeholder Add node on right. Click on the placeholder Add node and enter the name AodUnload. Hit Add.
+  ![glueworkflow-aodunload](https://github.com/saunakc/glue-shellworkflow-redshift/blob/master/images/AodRS-gluewf-aodunload.gif)
+  
+  * Once this is saved it will create 2 placeholder nodes. The one on the left side is for the triggering event. The right side node is for triggered event.
+  ![glueworkflow-additionalnodes](https://github.com/saunakc/glue-shellworkflow-redshift/blob/master/images/AodRS-gluewf-additionalnodes.gif)
+  
+  * Select that right node i.e triggered node and choose "aodCrawler" crawler and hit Add.
+  ![glueworkflow-crawler](https://github.com/saunakc/glue-shellworkflow-redshift/blob/master/images/AodRS-gluewf-crawler.gif)
+  
+  * The final workflow will look like below.
+ ![glueworkflow-finalwf](https://github.com/saunakc/glue-shellworkflow-redshift/blob/master/images/AodRS-gluecrawler-finalworkflow.gif)
