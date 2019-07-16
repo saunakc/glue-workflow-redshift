@@ -191,3 +191,10 @@ The parameters are
   
   * The final workflow will look like below.
  ![glueworkflow-finalwf](https://github.com/saunakc/glue-shellworkflow-redshift/blob/master/images/AodRS-gluecrawler-finalworkflow.gif)
+
+
+  ### Run the Workflow
+  
+  You can run the workflow by selecting the AoDWorkFlow > Actions > Run.
+  
+  Once the workflow is running you can check the dynaminc view by going to the History tab, selecting the Run ID with Run Status as Running and clicking on View run details.
