@@ -1,5 +1,14 @@
-# glue-shellworkflow-redshift
-Building workflow using AWS Glue python shell to load and unload sample data
+# Glue python Shell to build Redshift workflow
+In this lab you will learn how to build Glue workflow using Python shell to orchestrate COPY and UNLOAD tables in Amazon Redshift cluster. The sample data is taken from Global Surface Summary of Day data (https://registry.opendata.aws/noaa-gsod/) and is available in public S3 bucket s3://aws-gsod/.
+
+Specifically you will:
+* Launch a Redshift cluster from cloudformation template.
+* Create AWS Glue jobs using Python shell.
+	- Job 1 will copy the public data available in s3://aws-gsod/ into the cluster by running copy command.
+	- Job 2 will unload a partition in an s3 location as CSV.
+* Create a crawler to crawl the unloaded data.
+* Create a AWS Glue workflow to orchestrate the pipeline using graphical interface.
+* Run the workflow and validate the unloaded data using Athena and Spectrum.
 
 ## Steps for the lab
 
