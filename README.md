@@ -189,17 +189,22 @@ The parameters are
   * Click on "Add node" inside the graph. Select "AodRS" job and hit Add.
   ![glueworkflow-start](https://github.com/saunakc/glue-shellworkflow-redshift/blob/master/images/AodRS-gluewf-startwf.gif)
   
-  * Click on the newly added node AodRS. It will display a placeholder Add node on right. Click on the placeholder Add node and enter the name AodUnload. Hit Add.
-  ![glueworkflow-aodunload](https://github.com/saunakc/glue-shellworkflow-redshift/blob/master/images/AodRS-gluewf-aodunload.gif)
+  * Click on the newly added node AodRS. It will display a placeholder Add trigger on its right. Click on the placeholder Add trigger and enter the trigger name as RSCopy-complete. Hit Add.
+  ![Glue-trigger-RSCopy-complete](https://github.com/saunakc/glue-workflow-redshift/blob/master/images/Glue-trigger-RSCopy-complete.gif)
   
-  * Once this is saved it will create 2 placeholder nodes. The one on the left side is for any additional triggering event. We will not add anything there. The right side node is for the triggered event. We will add the crawler here.
-  ![glueworkflow-additionalnodes](https://github.com/saunakc/glue-shellworkflow-redshift/blob/master/images/AodRS-gluewf-additionalnodes.gif)
+  * Once this is saved it will create 2 placeholder nodes. The one on the left side is for any additional conditional node(s). We will not add anything there. The right side node is for the triggered node. We will add the Unload job here.
+  ![Glue-addnod](https://github.com/saunakc/glue-workflow-redshift/blob/master/images/Glue-addnode.gif)
   
-  * Select that right node i.e triggered node and choose "aodCrawler" crawler and hit Add.
-  ![glueworkflow-crawler](https://github.com/saunakc/glue-shellworkflow-redshift/blob/master/images/AodRS-gluewf-crawler.gif)
+  * Select that right node i.e triggered node and choose "AodRS_Unload" job and hit Add.
+  ![Glue-node-RSUnload](https://github.com/saunakc/glue-workflow-redshift/blob/master/images/Glue-node-RSUnload.gif)
+  
+  * Add another trigger by selecting the "AodRS_Unload" node on the graph and then clicking on Add trigger. Name it "RSUnload-complete".
+  
+  * Click on the Add node of the right of "RSUnload-complete" and select Crawler aodCrawler.
+  ![Glue-crawler-add](https://github.com/saunakc/glue-workflow-redshift/blob/master/images/Glue-crawler-add.gif)
   
   * The final workflow will look like below.
- ![glueworkflow-finalwf](https://github.com/saunakc/glue-shellworkflow-redshift/blob/master/images/AodRS-gluecrawler-finalworkflow.gif)
+ ![glueworkflow-finalwf](https://github.com/saunakc/glue-workflow-redshift/blob/master/images/Glue-final-workflow.gif)
 
 
   ### Run the Workflow
