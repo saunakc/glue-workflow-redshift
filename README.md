@@ -96,10 +96,10 @@ SORTKEY
 
 ### Create Glue Workflow
 
-#### Create Glue jobs
+#### Create Redshift COPY job in AWS Glue
 
 * Switch to AWS service AWS Glue and select Jobs from the left navigation. Click "Add job".
-* Enter job information
+* Enter job details
 
   Name ->  AodRS
   
@@ -111,15 +111,60 @@ SORTKEY
   
 ![AodRSGlueJob](https://github.com/saunakc/glue-shellworkflow-redshift/blob/master/images/AodRS-gluejob-properties1.gif)
 
-* Expand "Security configuration, script libraries ...." and enter below job parameters as Key-Value pair
+* Expand "Security configuration, script libraries ...." and enter below job parameters as Key and their corresponding Value.
 
-  ** --host
-  ** --port
-  ** --dbname
-  ** --dbuser
-  ** --dbpassword
-  ** --iamrole
+  * --host
+  
+  * --port
+  
+  * --dbname
+  
+  * --dbuser
+  
+  * --dbpassword
+  
+  * --iamrole
+  
 
 ![AodRSGlueJobParam](https://github.com/saunakc/glue-shellworkflow-redshift/blob/master/images/AodRS-gluejob-parameters.gif)
 
 * Hit "Save job and edit script" on Connections screen. Paste the [aodrs-glue-copy.py](https://github.com/saunakc/glue-shellworkflow-redshift/blob/master/src/scripts/aodrs-glue-copy.py) script in the page. Hit Save.
+
+
+#### Create Redshift UNLOAD job in AWS Glue
+
+Similarly create another Python shell job "AodRS_Unload". 
+
+The script can be found in [aodrs-glue-unload.py](https://github.com/saunakc/glue-shellworkflow-redshift/blob/master/src/scripts/aodrs-glue-unload.py).
+
+The parameters are
+
+  * --host
+  
+  * --port
+  
+  * --dbname
+  
+  * --dbuser
+  
+  * --dbpassword
+  
+  * --iamrole
+  
+  * --s3location
+  
+  #### Create AWS Glue Crawler
+  
+  * Click on Crawlers > Add crawler.
+  
+  * Crawler name -> aodCrawler. Hit Next 2 times.
+  
+  * In the Add a data store screen specify the "Include path" as the s3 bucket created by the CFN as prefix to the file path. For example ```s3://aodrsstack-s3bucket-1bchdtlq8nw17/tables/```
+  
+  ![crawler-add-datastore](https://github.com/saunakc/glue-shellworkflow-redshift/blob/master/images/AodRS-gluecrawler-datastore.gif)
+  
+  * Hit Next 2 times. In the "Choose an IAM role" sreen select "Choose an existing IAM role" >  AWS-Glue-ServiceRole. Hit Next 2 times.
+  
+  * Configure the crawler's output select Database default and Prefix as aodrs_. Hit Next and Finish.
+  
+  ![crawler-output](https://github.com/saunakc/glue-shellworkflow-redshift/blob/master/images/AodRS-gluecrawler-output.gif)
