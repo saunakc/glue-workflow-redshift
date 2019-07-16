@@ -423,6 +423,12 @@
          "Value":{
             "Ref":"S3Bucket"
          }
+      },
+      "AoDS3Role":{
+         "Description":"AoD workshop S3 role",
+         "Value":{
+            "Ref":"RedshiftS3Role"
+         }
       }
     }
 }
