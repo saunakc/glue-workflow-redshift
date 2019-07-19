@@ -221,7 +221,7 @@ The parameters are
 
 * Select the checkbox for the table > Actions > View data. Accept Preview data dialog. THis opens up Athena console in a separate tab and the sample query will automatically gets executed.
 
-### via Spectrum
+#### via Spectrum
 
 Before proceeding with the below steps, update the IAM role that is attached to the REdshift cluster to give permission for Glue. Navigate to the IAM service > Roles and search for "AodrsStack-redshift-aod-s3". Click on the role > Permissions > Attach policies > search "AWSGlueServiceRole" > Check and Atatch policy.
 
