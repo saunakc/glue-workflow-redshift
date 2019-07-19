@@ -116,6 +116,8 @@ SORTKEY
   
   Type -> Python shell
   
+  Add new script to be authored by you
+  
   S3 path where the script is stored -> s3://aws-glue-scripts-<account#>-us-east-2/scripts
   
 ![AodRSGlueJob](https://github.com/saunakc/glue-shellworkflow-redshift/blob/master/images/AodRS-gluejob-properties1.gif)
