@@ -212,3 +212,40 @@ The parameters are
   You can run the workflow by selecting the AoDWorkFlow > Actions > Run.
   
   Once the workflow is running you can check the dynaminc view by going to the History tab, selecting the Run ID with Run Status as Running and clicking on View run details.
+
+
+### Run query on S3 data lake
+
+#### via Athena
+* Navigate to AWS GLue > Databases > Tables. The table created by the last step of the above workflow will appear. Name of the table is going to be "aodrs_tables" (if you have followed all the steps as per the instructions).
+
+* Select the checkbox for the table > Actions > View data. Accept Preview data dialog. THis opens up Athena console in a separate tab and the sample query will automatically gets executed.
+
+### via Spectrum
+
+Before proceeding with the below steps, update the IAM role that is attached to the REdshift cluster to give permission for Glue. Navigate to the IAM service > Roles and search for "AodrsStack-redshift-aod-s3". Click on the role > Permissions > Attach policies > search "AWSGlueServiceRole" > Check and Atatch policy.
+
+* Open SQL client and connect to the Redshift cluster and execute below statement
+```sql
+create external schema spectrum_schema
+from data catalog
+database 'default'
+region 'us-east-2' 
+iam_role 'arn:aws:iam::413094830157:role/AodrsStack-redshift-aod-s3';
+```
+* Check if the Glue table is sourced into Spectrum
+```sql
+select * from svv_external_schemas;
+```
+
+* Query the table from Redshift
+
+```sql
+select * from spectrum_schema.aodrs_tables limit 10;
+```
+
+### Don't forget
+
+After you are done with the lab shut down the cluster and its associated resources by deleting the CFN stack.
+
+![DeleteStack](https://github.com/saunakc/glue-workflow-redshift/blob/master/images/AodRS-deleteStack.gif)
