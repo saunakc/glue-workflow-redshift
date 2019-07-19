@@ -248,6 +248,8 @@ select * from spectrum_schema.aodrs_tables limit 10;
 
 ### Don't forget
 
+Before deleting the stack, empty the s3 bucket otherwise delete stack will fail.
+
 After you are done with the lab shut down the cluster and its associated resources by deleting the CFN stack.
 
 ![DeleteStack](https://github.com/saunakc/glue-workflow-redshift/blob/master/images/AodRS-deleteStack.gif)
