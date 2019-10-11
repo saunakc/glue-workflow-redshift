@@ -14,21 +14,21 @@ Specifically you will:
 
 ### Launch infrasturetuce- Redshift cluster, Glue crawler, job and workflow
 
-Step 1 Login into your AWS console and select CloudFormation service. Click "Create stack" and in next screen under Specify template select "Upload a template file". Choose the file from local system where you have downloaded the CFN template [CFN_Redshift_GlueJob.json]( https://github.com/saunakc/glue-shellworkflow-redshift/blob/master/src/cloudformation/vpc-redshift.jsonhttps://github.com/saunakc/glue-workflow-redshift/blob/master/src/cloudformation/CFN_Redshift_GlueJob.json) file. Click Next.
+**Step 1** Login into your AWS console and select CloudFormation service. Click "Create stack" and in next screen under Specify template select "Upload a template file". Choose the file from local system where you have downloaded the CFN template [CFN_Redshift_GlueJob.json]( https://github.com/saunakc/glue-shellworkflow-redshift/blob/master/src/cloudformation/vpc-redshift.jsonhttps://github.com/saunakc/glue-workflow-redshift/blob/master/src/cloudformation/CFN_Redshift_GlueJob.json) file. Click Next.
 
-Step 2 Specify stack details: Type in a name as Stack name. Review the other parameters for the Redshift cluster and click Next.
+**Step 2 Specify stack details**: Type in a name as Stack name. Enter the VPC parameter and review the other parameters and click Next.
 
-Step 3 Configure stack options: Leave blank and click Next.
+**Step 3 Configure stack options**: Leave blank and click Next.
 
-Step 4 Scroll down to bottom and select "I acknowledge that AWS CloudFormation might create IAM resources with custom names." option. Hit Create stack.
+**Step 4** Scroll down to bottom and select "I acknowledge that AWS CloudFormation might create IAM resources with custom names." option. Hit Create stack.
 
-Step 5 This will take 10-15 minutes to create all the resources including the Redshift cluster. You can monitor progress of your stack from the Events tab.
+**Step 5** This will take 10-15 minutes to create all the resources including the Redshift cluster. You can monitor progress of your stack from the Events tab.
 
-Step 6 Finally the Stack creation will mark as CREATE_COMPLETE. Click on the Outputs tab. You will find all the necessary resources you will need for this lab.
+**Step 6** Finally the Stack creation will mark as CREATE_COMPLETE. Click on the Outputs tab. You will find all the necessary resources you will need for this lab.
 
-Post requirements:
-* Go to S3 console and create a folder "scripts" under the newly created S3 bucket.
-* Unload the 2 files- aodrs-glue-copy and aodrs-glue-unload.
+**Post requirements**:
+* Go to S3 console and create a folder "**scripts**" under the newly created S3 bucket.
+* Unload the 2 files- aodrs-glue-copy.py and aodrs-glue-unload.py.
 
 ### Redshift Query Editor to run query
 
@@ -103,183 +103,7 @@ Check the workflow execution in History tab. This should take 15-20 mintues. Aft
 * The unloaded S3 data is registered as AWS Glue table.
 
 
-### Create Redshift cluster
-
-
-#### Test Cluster connectivity
-
-You can connect to your cluster using your favorite SQL client. I use SQL Workbench/ J. Remember to use details:
-
-* Endpoint - find it from the CFN Outputs. The endpoint will be similar to aodrsstack-redshiftcluster-1vytmfve2c8p5.cqga9q1t5wyf.us-east-2.redshift.amazonaws.com
-* Port - **8192**
-* Database name - **aoddb**
-* Username - **aodmaster**
-* Password - **Welcome123**
-
-The JDBC connection string will be 
-
-``jdbc:redshift://aodrsstack-redshiftcluster-1vytmfve2c8p5.cqga9q1t5wyf.us-east-2.redshift.amazonaws.com:8192/aoddb?ssl=false``
-
-### Create table
-From your SQL client execute below statement.
-
-```SQL
-CREATE TABLE weather_data
-(
-	id VARCHAR(30) ENCODE zstd,
-	usaf INTEGER ENCODE zstd,
-	wban INTEGER ENCODE zstd,
-	elevation NUMERIC(6, 2) ENCODE zstd,
-	country_code VARCHAR(3) ENCODE bytedict,
-	latitude NUMERIC(10, 3) ENCODE zstd,
-	longitude NUMERIC(10, 3) ENCODE zstd,
-	reported_date DATE ENCODE zstd,
-	year INTEGER,
-	month INTEGER,
-	day INTEGER ENCODE zstd,
-	mean_temp NUMERIC(6, 2) ENCODE delta32k,
-	mean_temp_count INTEGER ENCODE zstd,
-	mean_dewpoint NUMERIC(6, 2) ENCODE delta32k,
-	mean_dewpoint_count INTEGER ENCODE zstd,
-	mean_sea_level_pressure NUMERIC(6, 2) ENCODE delta32k,
-	mean_sea_level_pressure_count INTEGER ENCODE delta,
-	mean_station_pressure NUMERIC(6, 2) ENCODE delta32k,
-	mean_station_pressure_count INTEGER ENCODE zstd,
-	mean_visibility NUMERIC(6, 2) ENCODE bytedict,
-	mean_visibility_count INTEGER ENCODE delta,
-	mean_windspeed NUMERIC(6, 2) ENCODE bytedict,
-	mean_windspeed_count INTEGER ENCODE delta,
-	max_windspeed NUMERIC(6, 2) ENCODE bytedict,
-	max_gust NUMERIC(6, 2) ENCODE bytedict,
-	max_temp NUMERIC(6, 2) ENCODE delta32k,
-	max_temp_quality_flag INTEGER ENCODE zstd,
-	min_temp NUMERIC(6, 2) ENCODE delta32k,
-	min_temp_quality_flag CHAR(1) ENCODE zstd,
-	precipitation NUMERIC(6, 2) ENCODE zstd,
-	precip_flag CHAR(1) ENCODE zstd,
-	snow_depth NUMERIC(6, 2) ENCODE zstd,
-	fog INTEGER ENCODE zstd,
-	rain_or_drizzle INTEGER ENCODE zstd,
-	snow_or_ice INTEGER ENCODE zstd,
-	hail INTEGER ENCODE zstd,
-	thunder INTEGER ENCODE zstd,
-	tornado INTEGER ENCODE zstd
-)
-DISTSTYLE EVEN
-SORTKEY
-(
-	year,
-	month
-);
-```
-
-### Create Glue Workflow
-
-#### Create Redshift COPY job in AWS Glue
-
-* Switch to AWS service AWS Glue and select Jobs from the left navigation. Click "Add job".
-* Enter job details
-
-  Name ->  AodRS
-  
-  IAM Role -> AWS-Glue-ServiceRole
-  
-  Type -> Python shell
-  
-  Add new script to be authored by you
-  
-  S3 path where the script is stored -> s3://aws-glue-scripts-<account#>-us-east-2/scripts
-  
-![AodRSGlueJob](https://github.com/saunakc/glue-shellworkflow-redshift/blob/master/images/AodRS-gluejob-properties1.gif)
-
-* Expand "Security configuration, script libraries ...." and enter below job parameters as Key and their corresponding Value.
-
-  * --host
-  
-  * --port
-  
-  * --dbname
-  
-  * --dbuser
-  
-  * --dbpassword
-  
-  * --iamrole
-  
-
-![AodRSGlueJobParam](https://github.com/saunakc/glue-shellworkflow-redshift/blob/master/images/AodRS-gluejob-parameters.gif)
-
-* Hit "Save job and edit script" on Connections screen. Paste the [aodrs-glue-copy.py](https://github.com/saunakc/glue-shellworkflow-redshift/blob/master/src/scripts/aodrs-glue-copy.py) script in the page. Hit Save.
-
-
-#### Create Redshift UNLOAD job in AWS Glue
-
-Similarly create another Python shell job "AodRS_Unload". 
-
-The script can be found in [aodrs-glue-unload.py](https://github.com/saunakc/glue-shellworkflow-redshift/blob/master/src/scripts/aodrs-glue-unload.py).
-
-The parameters are
-
-  * --host
-  
-  * --port
-  
-  * --dbname
-  
-  * --dbuser
-  
-  * --dbpassword
-  
-  * --iamrole
-  
-  * --s3location	--> s3://aodrsstack-s3bucket-1bchdtlq8nw17/**tables/weather_data/year=2016/month=01/**
-  
-  #### Create AWS Glue Crawler
-  
-  * Click on Crawlers > Add crawler.
-  
-  * Crawler name -> aodCrawler. Hit Next 2 times.
-  
-  * In the Add a data store screen specify the "Include path" as the s3 bucket created by the CFN as prefix to the file path. For example ```s3://aodrsstack-s3bucket-1bchdtlq8nw17/tables/```
-  
-  ![crawler-add-datastore](https://github.com/saunakc/glue-shellworkflow-redshift/blob/master/images/AodRS-gluecrawler-datastore.gif)
-  
-  * Hit Next 2 times. In the "Choose an IAM role" sreen select "Choose an existing IAM role" >  AWS-Glue-ServiceRole. Hit Next 2 times.
-  
-  * Configure the crawler's output select Database default and Prefix as aodrs_. Hit Next and Finish.
-  
-  ![crawler-output](https://github.com/saunakc/glue-shellworkflow-redshift/blob/master/images/AodRS-gluecrawler-output.gif)
-  
-  ### Create Workflow
-  
-  * Select ETL > Workflows > Add Workflow. Give a Workflow  name such as "AodWorkFlow". Hit Add workflow.
-  
-  * Select AoDWorkFlow by clicking the left radio button. In the Graph tab select Action > Add trigger.
-  
-  * Select Add new and give a name "StartWorkflow" and Trigger type as "On demand".
-  
-  * Click on "Add node" inside the graph. Select "AodRS" job and hit Add.
-  ![glueworkflow-start](https://github.com/saunakc/glue-shellworkflow-redshift/blob/master/images/AodRS-gluewf-startwf.gif)
-  
-  * Click on the newly added node AodRS. It will display a placeholder Add trigger on its right. Click on the placeholder Add trigger and enter the trigger name as RSCopy-complete. Hit Add.
-  ![Glue-trigger-RSCopy-complete](https://github.com/saunakc/glue-workflow-redshift/blob/master/images/Glue-trigger-RSCopy-complete.gif)
-  
-  * Once this is saved it will create 2 placeholder nodes. The one on the left side is for any additional conditional node(s). We will not add anything there. The right side node is for the triggered node. We will add the Unload job here.
-  ![Glue-addnod](https://github.com/saunakc/glue-workflow-redshift/blob/master/images/Glue-addnode.gif)
-  
-  * Select that right node i.e triggered node and choose "AodRS_Unload" job and hit Add.
-  ![Glue-node-RSUnload](https://github.com/saunakc/glue-workflow-redshift/blob/master/images/Glue-node-RSUnload.gif)
-  
-  * Add another trigger by selecting the "AodRS_Unload" node on the graph and then clicking on Add trigger. Name it "RSUnload-complete".
-  
-  * Click on the Add node of the right of "RSUnload-complete" and select Crawler aodCrawler.
-  ![Glue-crawler-add](https://github.com/saunakc/glue-workflow-redshift/blob/master/images/Glue-crawler-add.gif)
-  
-  * The final workflow will look like below.
- ![glueworkflow-finalwf](https://github.com/saunakc/glue-workflow-redshift/blob/master/images/Glue-final-workflow.gif)
-
-
-  ### Run the Workflow
+### Run the Workflow
   
   You can run the workflow by selecting the AoDWorkFlow > Actions > Run.
   
