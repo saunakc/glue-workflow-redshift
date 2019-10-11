@@ -14,7 +14,17 @@ Specifically you will:
 
 ### Launch infrasturetuce- Redshift cluster, Glue crawler, job and workflow
 
-[![Launch](../images/cloudformation-launch-stack.png)](https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=AodStack&templateURL=https://github.com/saunakc/glue-workflow-redshift/blob/master/src/cloudformation/CFN_Redshift_GlueJob.json)
+Step 1 Login into your AWS console and select CloudFormation service. Click "Create stack" and in next screen under Specify template select "Upload a template file". Choose the file from local system where you have downloaded the CFN template [CFN_Redshift_GlueJob.json]( https://github.com/saunakc/glue-shellworkflow-redshift/blob/master/src/cloudformation/vpc-redshift.jsonhttps://github.com/saunakc/glue-workflow-redshift/blob/master/src/cloudformation/CFN_Redshift_GlueJob.json) file. Click Next.
+
+Step 2 Specify stack details: Type in a name as Stack name. Review the other parameters for the Redshift cluster and click Next.
+
+Step 3 Configure stack options: Leave blank and click Next.
+
+Step 4 Scroll down to bottom and select "I acknowledge that AWS CloudFormation might create IAM resources with custom names." option. Hit Create stack.
+
+Step 5 This will take 10-15 minutes to create all the resources including the Redshift cluster. You can monitor progress of your stack from the Events tab.
+
+Step 6 Finally the Stack creation will mark as CREATE_COMPLETE. Click on the Outputs tab. You will find all the necessary resources you will need for this lab.
 
 Post requirements:
 * Go to S3 console and create a folder "scripts" under the newly created S3 bucket.
@@ -95,27 +105,6 @@ Check the workflow execution in History tab. This should take 15-20 mintues. Aft
 
 ### Create Redshift cluster
 
-1. Login into your AWS console and select CloudFormation service. Click "Create stack" and in next screen under Specify template select "Upload a template file". Choose the file from local system where you have downloaded the CFN template [vpc-redshift.json]( https://github.com/saunakc/glue-shellworkflow-redshift/blob/master/src/cloudformation/vpc-redshift.json) file. Click Next.
-
-![CFN Step 1](https://github.com/saunakc/glue-shellworkflow-redshift/blob/master/images/cfnstep1.gif)
-
-2. Step 2 Specify stack details: Type in "AodRSGlue" as the Stack name. Review the other parameters for the Redshift cluster and click Next.
-
-![CFN Step 2](https://github.com/saunakc/glue-shellworkflow-redshift/blob/master/images/cfnstep2.gif)
-
-3. Step 3 Configure stack options: Leave blank and click Next.
-
-4. Review AodRSGlue: Scroll down to bottom and select "I acknowledge that AWS CloudFormation might create IAM resources with custom names." option. Hit Create stack.
-
-![CFN Step 4](https://github.com/saunakc/glue-shellworkflow-redshift/blob/master/images/cfnstep4.gif)
-
-5. This will take 10-15 minutes to create all the resources including the Redshift cluster. You can monitor progress of your stack from the Events tab.
-
-![CFN Events](https://github.com/saunakc/glue-shellworkflow-redshift/blob/master/images/cfnEvents.gif)
-
-6. Finally the Stack creation will mark as CREATE_COMPLETE. Click on the Outputs tab. You will find all the necessary resources you will need for this lab.
-
-![CFN Outputs](https://github.com/saunakc/glue-shellworkflow-redshift/blob/master/images/cfnsOutputs.gif)
 
 #### Test Cluster connectivity
 
