@@ -1,0 +1,323 @@
+{
+	"AWSTemplateFormatVersion": "2010-09-09",
+	"Description": "This template creates resources necessary for Redshift cluster to be used for AWS Glue job Lab",
+	"Parameters": {
+		"AodClusterType": {
+			"Description": "Select single-node or multi-node cluster",
+			"Type": "String",
+			"AllowedValues": ["single-node", "multi-node"],
+			"Default": "multi-node"
+		},
+		"AodNodeType": {
+			"Description": "Select node-type of the cluster",
+			"Type": "String",
+			"AllowedValues": ["ds2.xlarge", "ds2.8xlarge", "dc2.large", "dc2.8xlarge"],
+			"Default": "dc2.large"
+		},
+		"AodNumberOfNodes": {
+			"Description": "Select number of nodes of the cluster",
+			"Type": "Number",
+			"Default": 4
+		},
+		"AodVpcPreset": {
+			"Description": "Enter the ID of your VPC",
+			"Type": "String"
+		}
+	},
+	"Resources": {
+		"RedshiftSecurityGroup": {
+			"Type": "AWS::EC2::SecurityGroup",
+			"Properties": {
+				"VpcId": {
+					"Ref": "AodVpcPreset"
+				},
+				"GroupDescription": "Enable access into Redshift cluster",
+				"SecurityGroupIngress": [{
+					"IpProtocol": "tcp",
+					"FromPort": "8192",
+					"ToPort": "8192",
+					"CidrIp": "0.0.0.0/0"
+				}]
+			}
+		},
+		"RedshiftS3Role": {
+			"Type": "AWS::IAM::Role",
+			"Properties": {
+				"RoleName": {
+					"Fn::Join": [
+						"-",
+						[{
+								"Ref": "AWS::StackName"
+							},
+							"redshift-s3"
+						]
+					]
+				},
+				"AssumeRolePolicyDocument": {
+					"Version": "2012-10-17",
+					"Statement": [{
+							"Effect": "Allow",
+							"Principal": {
+								"Service": "redshift.amazonaws.com"
+							},
+							"Action": ["sts:AssumeRole"]
+						},
+						{
+							"Effect": "Allow",
+							"Principal": {
+								"Service": "glue.amazonaws.com"
+							},
+							"Action": ["sts:AssumeRole"]
+						}
+					]
+				},
+				"Policies": [{
+					"PolicyName": "redshift-aod-s3-role",
+					"PolicyDocument": {
+						"Version": "2012-10-17",
+						"Statement": [{
+							"Effect": "Allow",
+							"Action": ["s3:*", "logs:*", "glue:*"],
+							"Resource": "*"
+						}]
+					}
+				}]
+			}
+		},
+		"RedshiftCluster": {
+			"Type": "AWS::Redshift::Cluster",
+			"Properties": {
+				"ClusterType": {
+					"Ref": "AodClusterType"
+				},
+				"NodeType": {
+					"Ref": "AodNodeType"
+				},
+				"NumberOfNodes": {
+					"Ref": "AodNumberOfNodes"
+				},
+				"DBName": "aoddb",
+				"Port": 8192,
+				"IamRoles": [{
+					"Fn::GetAtt": [
+						"RedshiftS3Role",
+						"Arn"
+					]
+				}],
+				"MasterUsername": "aodmaster",
+				"MasterUserPassword": "Welcome123",
+				"ClusterParameterGroupName": {
+					"Ref": "RedshiftClusterParameterGroup"
+				},
+				"VpcSecurityGroupIds": [{
+					"Ref": "RedshiftSecurityGroup"
+				}],
+				"PubliclyAccessible": "true"
+			}
+		},
+		"RedshiftClusterParameterGroup": {
+			"Type": "AWS::Redshift::ClusterParameterGroup",
+			"Properties": {
+				"Description": "Auto WLM cluster parameter group",
+				"ParameterGroupFamily": "redshift-1.0",
+				"Parameters": [{
+						"ParameterName": "enable_user_activity_logging",
+						"ParameterValue": "true"
+					},
+					{
+						"ParameterName": "wlm_json_configuration",
+						"ParameterValue": "[ {\"query_concurrency\" : 10,\"priority\" : \"high\",\"query_group\" : [ \"ingest\" ],\"queue_type\" : \"auto\",\"auto_wlm\" : true}, {\"priority\" : \"normal\",\"auto_wlm\" : true,\"queue_type\" : \"auto\"}, {\"short_query_queue\" : true}]"
+					}
+				]
+			}
+		},
+		"S3Bucket": {
+			"Type": "AWS::S3::Bucket"
+		},
+		"RedshiftCopyShellJob": {
+			"Type": "AWS::Glue::Job",
+			"Properties": {
+				"Command": {
+					"Name": "pythonshell",
+					"PythonVersion": 3,
+					"ScriptLocation":{ "Fn::Join": ["", [ "s3://", {"Ref": "S3Bucket"}, "/scripts/aodrs-glue-copy.py"]]}
+				},
+				"DefaultArguments": {
+					"--job-bookmark-option": "job-bookmark-enable",
+					"--host": {
+						"Fn::GetAtt": [
+							"RedshiftCluster",
+							"Endpoint.Address"
+						]
+					},
+					"--port": 8192,
+					"--dbname": "aoddb",
+					"--dbuser": "aodmaster",
+					"--dbpassword": "Welcome123",
+					"--iamrole": {"Fn::Join" : [ "", [ "arn:aws:iam::", {"Ref": "AWS::AccountId"}, ":role/", {"Ref": "RedshiftS3Role"} ] ]}
+				},
+				"ExecutionProperty": {
+					"MaxConcurrentRuns": 1
+				},
+				"MaxRetries": 0,
+				"Name": "AodRSJob-Copy",
+				"Role": {
+					"Ref": "RedshiftS3Role"
+				}
+			}
+		},
+		"RedshiftUnloadShellJob": {
+			"Type": "AWS::Glue::Job",
+			"Properties": {
+				"Command": {
+					"Name": "pythonshell",
+					"PythonVersion": 3,
+					"ScriptLocation":{ "Fn::Join": ["", [ "s3://", {"Ref": "S3Bucket"}, "/scripts/aodrs-glue-unload.py"]]}
+				},
+				"DefaultArguments": {
+					"--job-bookmark-option": "job-bookmark-enable",
+					"--host": {
+						"Fn::GetAtt": [
+							"RedshiftCluster",
+							"Endpoint.Address"
+						]
+					},
+					"--port": 8192,
+					"--dbname": "aoddb",
+					"--dbuser": "aodmaster",
+					"--dbpassword": "Welcome123",
+					"--iamrole": {"Fn::Join" : [ "", [ "arn:aws:iam::", {"Ref": "AWS::AccountId"}, ":role/", {"Ref": "RedshiftS3Role"} ] ]},
+					"--s3location": { "Fn::Join": ["", [ "s3://", {"Ref": "S3Bucket"}, "/tables/"]]}
+				},
+				"ExecutionProperty": {
+					"MaxConcurrentRuns": 1
+				},
+				"MaxRetries": 0,
+				"Name": "AodRSJob-Unload",
+				"Role": {
+					"Ref": "RedshiftS3Role"
+				}
+			}
+		},
+		"aodDatabase": {
+			"Type": "AWS::Glue::Database",
+			"Properties": {
+				"CatalogId": {
+					"Ref": "AWS::AccountId"
+				},
+				"DatabaseInput": {
+					"Name": "aoddb",
+					"Description": "Unloaded partitioned data from Redshift"
+				}
+			}
+		},
+		"aodCrawler": {
+			"Type": "AWS::Glue::Crawler",
+			"Properties": {
+				"Name": "aodCrawler",
+				"Role": {
+					"Ref": "RedshiftS3Role"
+				},
+				"TablePrefix": "aodrs_",
+				"DatabaseName": {
+					"Ref": "aodDatabase"
+				},
+				"Classifiers": [],
+				"Targets": {
+					"S3Targets": [{
+						"Path": {
+							"Fn::Join": [
+								"/",
+								[{
+										"Ref": "S3Bucket"
+									},
+									"tables/weather_data"
+								]
+							]
+						}
+					}]
+				},
+				"SchemaChangePolicy": {
+					"UpdateBehavior": "UPDATE_IN_DATABASE",
+					"DeleteBehavior": "LOG"
+				},
+				"Schedule": {
+					"ScheduleExpression": "cron(0/10 * ? * MON-FRI *)"
+				}
+			}
+		},
+		"AodRSWorkflow": {
+			"Type": "AWS::Glue::Workflow",
+			"Properties": {
+				"Description": "Copies data into weather table, unloads in s3 bucket partitioned and runs Glue crawler",
+				"Name": "AodRSWorkflow"
+			}
+		},
+		"StartWF": {
+			"Type": "AWS::Glue::Trigger",
+			"Properties": {
+				"Name": "Start-WF",
+				"Type": "ON_DEMAND",
+				"Description": "Starting the WF trigger",
+				"Actions": [{
+					"JobName": {
+						"Ref": "RedshiftCopyShellJob"
+					}
+				}],
+				"WorkflowName": {
+					"Ref": "AodRSWorkflow"
+				}
+			}
+		},
+		"CopyComplete": {
+			"Type": "AWS::Glue::Trigger",
+			"Properties": {
+				"Name": "Copy-complete",
+				"Type": "CONDITIONAL",
+				"Description": "Description for a conditional job trigger",
+				"Actions": [{
+					"JobName": {
+						"Ref": "RedshiftUnloadShellJob"
+					}
+				}],
+				"Predicate": {
+					"Conditions": [{
+						"LogicalOperator": "EQUALS",
+						"JobName": {
+							"Ref": "RedshiftCopyShellJob"
+						},
+						"State": "SUCCEEDED"
+					}]
+				},
+				"WorkflowName": {
+					"Ref": "AodRSWorkflow"
+				}
+			}
+		},
+		"UnloadComplete": {
+			"Type": "AWS::Glue::Trigger",
+			"Properties": {
+				"Name": "Unload-complete",
+				"Type": "CONDITIONAL",
+				"Description": "Description for a conditional job trigger",
+				"Actions": [{
+					"CrawlerName": {
+						"Ref": "aodCrawler"
+					}
+				}],
+				"Predicate": {
+					"Conditions": [{
+						"LogicalOperator": "EQUALS",
+						"JobName": {
+							"Ref": "RedshiftUnloadShellJob"
+						},
+						"State": "SUCCEEDED"
+					}]
+				},
+				"WorkflowName": {
+					"Ref": "AodRSWorkflow"
+				}
+			}
+		}
+	}
+}
