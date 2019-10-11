@@ -14,7 +14,7 @@ Specifically you will:
 
 ### Launch infrastrusture- Redshift cluster, Glue crawler, job and workflow
 
-**Step 1** Login into your AWS console and select CloudFormation service. Click "Create stack" and in next screen under Specify template select "Upload a template file". Choose the file from local system where you have downloaded the CFN template [CFN_Redshift_GlueJob.json]( https://github.com/saunakc/glue-shellworkflow-redshift/blob/master/src/cloudformation/vpc-redshift.jsonhttps://github.com/saunakc/glue-workflow-redshift/blob/master/src/cloudformation/CFN_Redshift_GlueJob.json) file. Click Next.
+**Step 1** Login into your AWS console and select CloudFormation service. Click "Create stack" and in next screen under Specify template select "Upload a template file". Choose the file from local system where you have downloaded the CFN template [CFN_Redshift_GlueJob.json](https://github.com/saunakc/glue-workflow-redshift/blob/master/src/cloudformation/CFN_Redshift_GlueJob.json) file. Click Next.
 
 **Step 2 Specify stack details**: Type in a name as Stack name. Enter the VPC parameter and review the other parameters and click Next.
 
