@@ -12,6 +12,87 @@ Specifically you will:
 
 ## Steps for the lab
 
+### Launch infrasturetuce- Redshift cluster, Glue crawler, job and workflow
+
+[![Launch](../images/cloudformation-launch-stack.png)](https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=ImmersionLab1&templateURL=https://s3-us-west-2.amazonaws.com/redshift-immersionday-labs/lab1.yaml)
+
+Post requirements:
+* Go to S3 console and create a folder "scripts" under the newly created S3 bucket.
+* Unload the 2 files- aodrs-glue-copy and aodrs-glue-unload.
+
+### Redshift Query Editor to run query
+
+Login into the the Amazon Redshift console and connect to the Query Editor. Supply the below credentials
+
+* Database: aoddc
+* Database user: aodmaster
+* Password: Welcome123
+
+Once logged in navigate to Schema > Public. There should be no table.
+
+Run the below DDL
+
+```SQL
+CREATE TABLE weather_data
+(
+	id VARCHAR(30) ENCODE zstd,
+	usaf INTEGER ENCODE zstd,
+	wban INTEGER ENCODE zstd,
+	elevation NUMERIC(6, 2) ENCODE zstd,
+	country_code VARCHAR(3) ENCODE bytedict,
+	latitude NUMERIC(10, 3) ENCODE zstd,
+	longitude NUMERIC(10, 3) ENCODE zstd,
+	reported_date DATE ENCODE zstd,
+	year INTEGER,
+	month INTEGER,
+	day INTEGER ENCODE zstd,
+	mean_temp NUMERIC(6, 2) ENCODE delta32k,
+	mean_temp_count INTEGER ENCODE zstd,
+	mean_dewpoint NUMERIC(6, 2) ENCODE delta32k,
+	mean_dewpoint_count INTEGER ENCODE zstd,
+	mean_sea_level_pressure NUMERIC(6, 2) ENCODE delta32k,
+	mean_sea_level_pressure_count INTEGER ENCODE delta,
+	mean_station_pressure NUMERIC(6, 2) ENCODE delta32k,
+	mean_station_pressure_count INTEGER ENCODE zstd,
+	mean_visibility NUMERIC(6, 2) ENCODE bytedict,
+	mean_visibility_count INTEGER ENCODE delta,
+	mean_windspeed NUMERIC(6, 2) ENCODE bytedict,
+	mean_windspeed_count INTEGER ENCODE delta,
+	max_windspeed NUMERIC(6, 2) ENCODE bytedict,
+	max_gust NUMERIC(6, 2) ENCODE bytedict,
+	max_temp NUMERIC(6, 2) ENCODE delta32k,
+	max_temp_quality_flag INTEGER ENCODE zstd,
+	min_temp NUMERIC(6, 2) ENCODE delta32k,
+	min_temp_quality_flag CHAR(1) ENCODE zstd,
+	precipitation NUMERIC(6, 2) ENCODE zstd,
+	precip_flag CHAR(1) ENCODE zstd,
+	snow_depth NUMERIC(6, 2) ENCODE zstd,
+	fog INTEGER ENCODE zstd,
+	rain_or_drizzle INTEGER ENCODE zstd,
+	snow_or_ice INTEGER ENCODE zstd,
+	hail INTEGER ENCODE zstd,
+	thunder INTEGER ENCODE zstd,
+	tornado INTEGER ENCODE zstd
+)
+DISTSTYLE EVEN
+SORTKEY
+(
+	year,
+	month
+);
+```
+
+### Glue workflow load data
+
+Navigate the AWS Glue console > Workflows > AodRSWorkflow. Select > Action > Run.
+
+Check the workflow execution in History tab. This should take 15-20 mintues. After the workflow finished-
+
+* Sample data from public S3 bucket s3://aws-gsod for the year 2016 will be loaded into the Redshift cluster.
+* The sample data will also be unloaded in CSV format in the newly created S3 bucket under tables/year=<year>/month=<month>/ 
+* The unloaded S3 data is registered as AWS Glue table.
+
+
 ### Create Redshift cluster
 
 1. Login into your AWS console and select CloudFormation service. Click "Create stack" and in next screen under Specify template select "Upload a template file". Choose the file from local system where you have downloaded the CFN template [vpc-redshift.json]( https://github.com/saunakc/glue-shellworkflow-redshift/blob/master/src/cloudformation/vpc-redshift.json) file. Click Next.
