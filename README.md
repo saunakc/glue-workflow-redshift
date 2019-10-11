@@ -12,7 +12,7 @@ Specifically you will:
 
 ## Steps for the lab
 
-### Launch infrasturetuce- Redshift cluster, Glue crawler, job and workflow
+### Launch infrastrusture- Redshift cluster, Glue crawler, job and workflow
 
 **Step 1** Login into your AWS console and select CloudFormation service. Click "Create stack" and in next screen under Specify template select "Upload a template file". Choose the file from local system where you have downloaded the CFN template [CFN_Redshift_GlueJob.json]( https://github.com/saunakc/glue-shellworkflow-redshift/blob/master/src/cloudformation/vpc-redshift.jsonhttps://github.com/saunakc/glue-workflow-redshift/blob/master/src/cloudformation/CFN_Redshift_GlueJob.json) file. Click Next.
 
@@ -28,13 +28,13 @@ Specifically you will:
 
 **Post requirements**:
 * Go to S3 console and create a folder "**scripts**" under the newly created S3 bucket.
-* Unload the 2 files- aodrs-glue-copy.py and aodrs-glue-unload.py.
+* Unload the 2 files- [aodrs-glue-copy.py](https://github.com/saunakc/glue-workflow-redshift/blob/master/src/scripts/aodrs-glue-copy.py) and [aodrs-glue-unload.py](https://github.com/saunakc/glue-workflow-redshift/blob/master/src/scripts/aodrs-glue-unload.py).
 
 ### Redshift Query Editor to run query
 
 Login into the the Amazon Redshift console and connect to the Query Editor. Supply the below credentials
 
-* Database: aoddc
+* Database: aoddb
 * Database user: aodmaster
 * Password: Welcome123
 
@@ -94,18 +94,18 @@ SORTKEY
 
 ### Glue workflow load data
 
-Navigate the AWS Glue console > Workflows > AodRSWorkflow. Select > Action > Run.
+Navigate the **AWS Glue console > Workflows > AodRSWorkflow**. Select **Action > Run**.
 
 Check the workflow execution in History tab. This should take 15-20 mintues. After the workflow finished-
 
 * Sample data from public S3 bucket s3://aws-gsod for the year 2016 will be loaded into the Redshift cluster.
-* The sample data will also be unloaded in CSV format in the newly created S3 bucket under tables/year=<year>/month=<month>/ 
+* The sample data will also be unloaded in CSV format in the newly created S3 bucket under **tables/weather_data/year=year/month=month/** 
 * The unloaded S3 data is registered as AWS Glue table.
 
 
 ### Run the Workflow
   
-  You can run the workflow by selecting the AoDWorkFlow > Actions > Run.
+  You can run the workflow by selecting the **AodRSWorkFlow > Actions > Run**.
   
   Once the workflow is running you can check the dynaminc view by going to the History tab, selecting the Run ID with Run Status as Running and clicking on View run details.
 
