@@ -14,7 +14,7 @@ Specifically you will:
 
 ### Launch infrasturetuce- Redshift cluster, Glue crawler, job and workflow
 
-[![Launch](../images/cloudformation-launch-stack.png)](https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=ImmersionLab1&templateURL=https://s3-us-west-2.amazonaws.com/redshift-immersionday-labs/lab1.yaml)
+[![Launch](../images/cloudformation-launch-stack.png)](https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=AodStack&templateURL=https://github.com/saunakc/glue-workflow-redshift/blob/master/src/cloudformation/CFN_Redshift_GlueJob.json)
 
 Post requirements:
 * Go to S3 console and create a folder "scripts" under the newly created S3 bucket.
