@@ -103,17 +103,28 @@ Check the workflow execution in History tab. This should take 15-20 mintues. Aft
 * The unloaded S3 data is registered as AWS Glue table.
 
 
-### Run the Workflow
+### Run sample queries on Redshift
   
-  You can run the workflow by selecting the **AodRSWorkFlow > Actions > Run**.
-  
-  Once the workflow is running you can check the dynaminc view by going to the History tab, selecting the Run ID with Run Status as Running and clicking on View run details.
+```sql
+
+select * from weather_data limit 10;
+
+SELECT year, lpad(month, 2, '0') as month FROM weather_data GROUP BY year, month ORDER by year, month;
+
+select country_code, latitude, longitude, date_trunc('month', reported_date) as month_date ,
+avg(mean_temp) as mean_temp, sum(mean_temp_count) as mthly_temp_count,
+min(min_temp) as min_temp, max(max_temp) as max_temp
+from weather_data
+group by country_code, latitude, longitude, date_trunc('month', reported_date) 
+order by country_code, month_date, latitude, longitude
+;
+```
 
 
 ### Run query on S3 data lake
 
 #### via Athena
-* Navigate to AWS GLue > Databases > Tables. The table created by the last step of the above workflow will appear. Name of the table is going to be "aodrs_tables" (if you have followed all the steps as per the instructions).
+* Navigate to **AWS Glue > Databases > Tables**. The table created by the last step of the above workflow will appear. Name of the table is going to be "aodrs_tables" (if you have followed all the steps as per the instructions).
 
 * Select the checkbox for the table > Actions > View data. Accept Preview data dialog. THis opens up Athena console in a separate tab and the sample query will automatically gets executed.
 
@@ -146,4 +157,3 @@ Before deleting the stack, empty the s3 bucket otherwise delete stack will fail.
 
 After you are done with the lab shut down the cluster and its associated resources by deleting the CFN stack.
 
-![DeleteStack](https://github.com/saunakc/glue-workflow-redshift/blob/master/images/AodRS-deleteStack.gif)
