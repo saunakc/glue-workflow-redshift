@@ -111,12 +111,12 @@ select * from weather_data limit 10;
 
 SELECT year, lpad(month, 2, '0') as month FROM weather_data GROUP BY year, month ORDER by year, month;
 
-select country_code, latitude, longitude, date_trunc('month', reported_date) as month_date ,
+select country_code, latitude, longitude, year , month,
 avg(mean_temp) as mean_temp, sum(mean_temp_count) as mthly_temp_count,
 min(min_temp) as min_temp, max(max_temp) as max_temp
 from weather_data
-group by country_code, latitude, longitude, date_trunc('month', reported_date) 
-order by country_code, month_date, latitude, longitude
+group by country_code, latitude, longitude, year , month 
+order by country_code, year , month, latitude, longitude
 ;
 ```
 
@@ -124,31 +124,44 @@ order by country_code, month_date, latitude, longitude
 ### Run query on S3 data lake
 
 #### via Athena
-* Navigate to **AWS Glue > Databases > Tables**. The table created by the last step of the above workflow will appear. Name of the table is going to be "aodrs_tables" (if you have followed all the steps as per the instructions).
+* Navigate to **AWS Glue > Databases > Tables**. The table created by the last step of the above workflow will appear. Name of the table is going to be "*aodrs_weather_data*" .
 
-* Select the checkbox for the table > Actions > View data. Accept Preview data dialog. THis opens up Athena console in a separate tab and the sample query will automatically gets executed.
+* Select the checkbox for the table > Actions > View data. Accept Preview data dialog. This opens up Athena console in a separate tab and the sample query will automatically gets executed.
+
+* You should able to run the above mentioned sample query in Athena console. These queries will run on Athena using S3 data that was unloaded and crawled by the AWS Glue workflow.
 
 #### via Spectrum
 
 Before proceeding with the below steps, update the IAM role that is attached to the REdshift cluster to give permission for Glue. Navigate to the IAM service > Roles and search for "AodrsStack-redshift-aod-s3". Click on the role > Permissions > Attach policies > search "AWSGlueServiceRole" > Check and Atatch policy.
 
-* Open SQL client and connect to the Redshift cluster and execute below statement
+* Open SQL client and connect to the Redshift cluster and execute below statement. Note the IAM_ROLE to be replaced with the respective value for your account.
+
 ```sql
 create external schema spectrum_schema
 from data catalog
 database 'default'
-region 'us-east-2' 
-iam_role 'arn:aws:iam::413094830157:role/AodrsStack-redshift-aod-s3';
+region 'us-west-2' 
+iam_role 'arn:aws:iam::123456789012:role/AodrsStack-redshift-aod-s3';
 ```
 * Check if the Glue table is sourced into Spectrum
 ```sql
 select * from svv_external_schemas;
 ```
 
-* Query the table from Redshift
+* Query the table from Redshift Spectrum
 
 ```sql
-select * from spectrum_schema.aodrs_tables limit 10;
+select * from spectrum_schema.aodrs_weather_data limit 10;
+
+SELECT year, lpad(month, 2, '0') as month FROM spectrum_schema.aodrs_weather_data GROUP BY year, month ORDER by year, month;
+
+select country_code, latitude, longitude, year , month,
+avg(mean_temp) as mean_temp, sum(mean_temp_count) as mthly_temp_count,
+min(min_temp) as min_temp, max(max_temp) as max_temp
+from spectrum_schema.aodrs_weather_data
+group by country_code, latitude, longitude, year , month 
+order by country_code, year , month, latitude, longitude
+;
 ```
 
 ### Don't forget
