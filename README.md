@@ -24,7 +24,7 @@ Specifically you will:
 
 **Step 5** This will take 10-15 minutes to create all the resources including the Redshift cluster. You can monitor progress of your stack from the Events tab.
 
-**Step 6** Finally the Stack creation will mark as CREATE_COMPLETE. Click on the Outputs tab. You will find all the necessary resources you will need for this lab.
+**Step 6** Finally the Stack creation will mark as CREATE_COMPLETE. Click on the Outputs tab. 
 
 **Post requirements**:
 * Go to S3 console and create a folder "**scripts**" under the newly created S3 bucket.
