@@ -22,6 +22,14 @@
 		"AodVpcPreset": {
 			"Description": "Enter the ID of your VPC",
 			"Type": "String"
+		},
+		"AodSubnet1": {
+			"Description": "Enter the ID of your 1st Subnet",
+			"Type": "String"
+		},
+		"AodSubnet2": {
+			"Description": "Enter the ID of your 2nd Subnet",
+			"Type": "String"
 		}
 	},
 	"Resources": {
@@ -40,6 +48,36 @@
 				}]
 			}
 		},
+      "AodClusterSubnetGroup" : {
+        "Type" : "AWS::Redshift::ClusterSubnetGroup",
+        "Properties" : {
+          "Description" : "DMS Redshift Cluster Subnet Group",
+          "SubnetIds":[
+             {
+                "Ref":"AodSubnet1"
+             },
+             {
+                "Ref":"AodSubnet2"
+             }
+          ],
+          "Tags":[
+             {
+                "Key":"Name",
+                "Value":{
+                   "Fn::Join":[
+                      "-",
+                      [
+                         {
+                            "Ref":"AWS::StackName"
+                         },
+                         "AodClusterSubnetGroup"
+                      ]
+                   ]
+                }
+             }
+          ]
+       }
+      },
 		"RedshiftS3Role": {
 			"Type": "AWS::IAM::Role",
 			"Properties": {
@@ -106,6 +144,7 @@
 				}],
 				"MasterUsername": "aodmaster",
 				"MasterUserPassword": "Welcome123",
+                "ClusterSubnetGroupName" : { "Ref" : "AodClusterSubnetGroup" },
 				"ClusterParameterGroupName": {
 					"Ref": "RedshiftClusterParameterGroup"
 				},
